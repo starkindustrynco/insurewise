@@ -12,6 +12,10 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
+    // Apostrophes in JSX text render fine; the plain-language copy uses many.
+    rules: { "react/no-unescaped-entities": "off" },
+  },
+  {
     ignores: [
       "node_modules/**",
       ".next/**",
