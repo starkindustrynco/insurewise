@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { ChatCircleText, Calculator, FileMagnifyingGlass, ShieldCheck } from "@phosphor-icons/react";
+import { ChatCircleText, Calculator, FileMagnifyingGlass, IdentificationCard, ShieldCheck } from "@phosphor-icons/react";
 import { Logo } from "@/components/brand/logo";
 import { useApp } from "@/store/app-store";
 import { useHydrated } from "@/hooks/use-hydrated";
+import { CardRail } from "@/features/card/card-rail";
 import { cn } from "@/lib/utils/cn";
 
 const TABS = [
@@ -27,12 +28,16 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (hydrated && !onboarded) router.replace("/start");
   }, [hydrated, onboarded, router]);
 
+  // The side panel shows hospital-ready cards on wide screens, except where the card is already the page.
+  const showRail = !pathname.startsWith("/app/card") && !pathname.startsWith("/app/add");
+  const ready = hydrated && onboarded;
+
   const active = (href: string) => (href === "/app" ? pathname === "/app" || pathname.startsWith("/app/card") : pathname.startsWith(href));
 
   return (
     <div className="min-h-dvh bg-background">
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur-md" style={{ paddingTop: "var(--safe-top)" }}>
-        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4">
+        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between px-4 lg:max-w-6xl">
           <Link href="/app" aria-label="My cover">
             <Logo />
           </Link>
@@ -53,19 +58,45 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <Link
-            href="/app/profile"
-            aria-label="Profile and settings"
-            className="grid size-9 place-items-center rounded-full bg-primary text-[0.85rem] font-semibold text-primary-foreground"
-          >
-            {hydrated && me ? me.name.slice(0, 1).toUpperCase() : ""}
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/app/card"
+              aria-label="Hospital-ready cards"
+              className={cn(
+                "grid size-9 place-items-center rounded-full border border-border bg-surface text-accent-strong lg:hidden",
+                pathname.startsWith("/app/card") && "border-accent bg-accent-soft",
+              )}
+            >
+              <IdentificationCard className="size-5" weight={pathname.startsWith("/app/card") ? "fill" : "regular"} aria-hidden />
+            </Link>
+            <Link
+              href="/app/profile"
+              aria-label="Profile and settings"
+              className="grid size-9 place-items-center rounded-full bg-primary text-[0.85rem] font-semibold text-primary-foreground"
+            >
+              {hydrated && me ? me.name.slice(0, 1).toUpperCase() : ""}
+            </Link>
+          </div>
         </div>
       </header>
 
-      <main id="main" className="mx-auto max-w-2xl px-4 pb-28 pt-5 md:pb-12">
-        {hydrated && onboarded ? children : null}
-      </main>
+      <div
+        className={cn(
+          "mx-auto max-w-2xl px-4 pb-28 pt-5 md:pb-12",
+          showRail && "lg:grid lg:max-w-6xl lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-start lg:gap-10",
+        )}
+      >
+        <main id="main" className="min-w-0">
+          {ready ? children : null}
+        </main>
+        {ready && showRail ? (
+          <aside aria-label="Hospital-ready cards" className="hidden lg:block">
+            <div className="sticky top-20 max-h-[calc(100dvh-6rem)] overflow-y-auto pb-6">
+              <CardRail />
+            </div>
+          </aside>
+        ) : null}
+      </div>
 
       <nav
         aria-label="Main"

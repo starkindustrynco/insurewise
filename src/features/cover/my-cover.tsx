@@ -177,8 +177,8 @@ export function MyCover() {
         </section>
       ) : null}
 
-      {/* Family cards */}
-      <section aria-labelledby="family" className="flex flex-col gap-2.5">
+      {/* Family cards (on wide screens they sit in the side panel instead) */}
+      <section aria-labelledby="family" className="flex flex-col gap-2.5 lg:hidden">
         <h2 id="family" className="text-heading px-1">
           Hospital-ready cards
         </h2>

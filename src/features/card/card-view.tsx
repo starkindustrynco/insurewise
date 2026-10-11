@@ -7,7 +7,7 @@ import type { Relation } from "@/domain/types";
 import { cn } from "@/lib/utils/cn";
 
 /** The hospital-ready card itself. Used by the family and by the hospital desk view. */
-export function CardView({ card, className }: { card: CardData; className?: string }) {
+export function CardView({ card, className, compact = false }: { card: CardData; className?: string; compact?: boolean }) {
   const rows: { label: string; value: string; tone?: "warn" | "ok" }[] = [
     { label: "Room", value: card.room, tone: /up to|depends|not found/i.test(card.room) ? "warn" : "ok" },
     { label: "Co-payment", value: card.coPay ? `${card.coPay}% of each claim` : "None for this member", tone: card.coPay ? "warn" : "ok" },
@@ -22,7 +22,7 @@ export function CardView({ card, className }: { card: CardData; className?: stri
       className={cn("overflow-hidden rounded-3xl border border-border bg-surface shadow-raised", className)}
       aria-label={`Hospital-ready card for ${card.name}`}
     >
-      <header className="flex items-start justify-between gap-3 bg-primary px-5 py-4 text-primary-foreground">
+      <header className={cn("flex items-start justify-between gap-3 bg-primary px-5 text-primary-foreground", compact ? "py-3" : "py-4")}>
         <div className="min-w-0">
           <p className="text-[0.7rem] font-medium uppercase tracking-[0.12em] opacity-75">Hospital-ready card</p>
           <h2 className="mt-1 truncate text-[1.35rem] font-semibold leading-tight">{card.name}</h2>
@@ -32,7 +32,7 @@ export function CardView({ card, className }: { card: CardData; className?: stri
         </div>
         <LogoMark className="size-9 shrink-0" />
       </header>
-      <div className="flex flex-col gap-4 px-5 py-4">
+      <div className={cn("flex flex-col px-5", compact ? "gap-3 py-3.5" : "gap-4 py-4")}>
         <div>
           <p className="font-semibold leading-snug">{card.product ?? "Health policy"}</p>
           <p className="text-support text-muted-foreground">{card.insurer ?? "Insurer not found in documents"}</p>
@@ -62,7 +62,7 @@ export function CardView({ card, className }: { card: CardData; className?: stri
 
         <ul className="flex flex-col divide-y divide-border rounded-xl border border-border">
           {rows.map((r) => (
-            <li key={r.label} className="flex items-center gap-3 px-3 py-2.5">
+            <li key={r.label} className={cn("flex items-center gap-3 px-3", compact ? "py-2" : "py-2.5")}>
               {r.tone === "ok" ? (
                 <CheckCircle className="size-5 shrink-0 text-success" weight="fill" aria-hidden />
               ) : (

@@ -2,37 +2,24 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useMemo } from "react";
 import { ArrowLeft, ArrowSquareOut, CheckSquare, Copy, WhatsappLogo } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { QrCode } from "@/components/qr-code";
-import { CASHLESS_STEPS, DOCS_TO_CARRY, cardFor, cardText, encodeCard } from "@/domain/card";
+import { CASHLESS_STEPS, DOCS_TO_CARRY, cardFor } from "@/domain/card";
 import { activePolicy, useApp } from "@/store/app-store";
 import { CardView } from "./card-view";
+import { useCardShare } from "./use-card-share";
 
 export function MemberCard() {
   const params = useSearchParams();
   const members = useApp((s) => s.members);
   const policy = useApp((s) => activePolicy(s));
-  const member = members.find((m) => m.id === params.get("member")) ?? members[0];
-  const [origin, setOrigin] = useState("");
-  useEffect(() => setOrigin(window.location.origin), []);
-
+  // The member in the link, else the first person the policy covers.
+  const member = members.find((m) => m.id === params.get("member")) ?? members.find((m) => policy?.memberIds.includes(m.id)) ?? members[0];
   const card = useMemo(() => (policy && member ? cardFor(policy, member) : null), [policy, member]);
+  const { link, copy, whatsapp } = useCardShare(card);
   if (!policy || !member || !card) return <p className="py-16 text-center text-muted-foreground">Add a policy first.</p>;
-
-  const link = `${origin}/hospital?c=${encodeCard(card)}`;
-  const text = cardText(card, link);
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Card copied");
-    } catch {
-      toast.error("Couldn't copy. Select the text instead.");
-    }
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -66,7 +53,7 @@ export function MemberCard() {
       <CardView card={card} />
 
       <section className="surface-card flex items-center gap-4 p-4" aria-label="Scan at the hospital">
-        {origin ? (
+        {link ? (
           <QrCode value={link} size={132} label={`QR code with ${member.name}'s card for the hospital desk`} />
         ) : (
           <div className="size-[132px]" />
@@ -87,7 +74,7 @@ export function MemberCard() {
 
       <div className="grid grid-cols-2 gap-2">
         <Button asChild variant="accent" size="lg">
-          <a href={`https://wa.me/?text=${encodeURIComponent(text)}`} target="_blank" rel="noreferrer">
+          <a href={whatsapp} target="_blank" rel="noreferrer">
             <WhatsappLogo weight="fill" aria-hidden /> WhatsApp
           </a>
         </Button>
